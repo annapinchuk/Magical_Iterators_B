@@ -1,40 +1,99 @@
 #include "MagicalContainer.hpp"
+#include <stdio.h>
 using namespace ariel;
 MagicalContainer::MagicalContainer() : items(), p_prime() {}
-MagicalContainer::~MagicalContainer() {}
+MagicalContainer::~MagicalContainer() {
+    // delete all the prime numbers
+    for (auto it = p_prime.begin(); it != p_prime.end(); it++)
+    {
+        delete *it;
+    } 
+}
 size_t MagicalContainer::size() { return items.size(); }
+bool MagicalContainer::isprime(int element)
+{
+    if (element <= 1)
+    {
+        return false;
+    }
+    for (int i = 2; i < element ; i++)
+    {
+        if (element % i == 0)
+        {
+            return false;
+        }
+    }
+    return true;
+}
 void MagicalContainer::addElement(int element)
 {
-    items.push_back(element);
-    if (element > 1)
+   // add elemnts in ascending order by value
+    if (items.size() == 0 || element > items.back())
     {
-        for (size_t i = 2; i < element; i++)
+        items.push_back(element);
+    }
+    else
+    {
+        auto it = items.begin();
+        while (it != items.end())
         {
-            if (static_cast<unsigned int>(element) % i == 0)
+            if (element < *it)
             {
-                return;
+                items.insert(it, element);
+                break;
+            }
+            it++;
+        }
+    }
+    // add prime numbers in ascending order by value
+    if (isprime(element))
+    {
+        if (p_prime.size() == 0 || element > *p_prime.back())
+        {
+            p_prime.push_back(new int(element));
+        }
+        else
+        {
+            auto it = p_prime.begin();
+            while (it != p_prime.end())
+            {
+                if (element < **it)
+                {
+                    p_prime.insert(it, new int(element));
+                    break;
+                }
+                it++;
             }
         }
-        p_prime.push_back(&items[items.size() - 1]);
     }
 }
 void MagicalContainer::removeElement(int element)
 {
-    for (int i = 0; i < items.size(); i++)
+    // if the container is empty
+    if (items.size() == 0)
     {
-        if (items[static_cast<std::vector<int>::size_type>(i)] == element)
+        std::__throw_runtime_error("The container is empty");
+    }
+    // if the elemnt is not in the container and the end is not the element
+    if (find(items.begin(), items.end(), element) == items.end() && items.back() != element)
+    {
+        std::__throw_runtime_error("The element is not in the container");
+    }
+    else
+    {
+        // if the element is prime
+        if (isprime(element))
         {
-
-            items.erase(items.begin() + i);
-            break;
+            // find the element in the prime vector
+            auto it = find(p_prime.begin(), p_prime.end(), &element);
+            // delete the element
+            delete *it;
+            // remove the element from the vector
+            p_prime.erase(it);
         }
     }
-    for (int i = 0; i < p_prime.size(); i++)
-    {
-        if (*p_prime[static_cast<std::vector<int>::size_type>(i)] == element)
-        {
-            p_prime.erase(p_prime.begin() + i);
-            break;
-        }
-    }
+    // find the element in the items vector
+    auto it = find(items.begin(), items.end(), element);
+    // remove the element from the vector
+    items.erase(it);
 }
